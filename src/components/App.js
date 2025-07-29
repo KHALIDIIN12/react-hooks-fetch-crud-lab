@@ -7,30 +7,35 @@ function App() {
   const [page, setPage] = useState("List");
   const [questions, setQuestions] = useState([]);
 
-  // fetch all questions
   useEffect(() => {
-    fetch("http://localhost:4000/questions")
+    const controller = new AbortController();
+
+    fetch("http://localhost:4000/questions", { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => setQuestions(data));
+      .then((data) => {
+        setQuestions(data);
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Fetch failed:", err);
+        }
+      });
+
+    return () => controller.abort(); // cleanup prevents act() warning
   }, []);
 
-  // Add a new question
   function handleAddQuestion(newQuestion) {
-    setQuestions([...questions, newQuestion]);
+    setQuestions((prev) => [...prev, newQuestion]);
   }
 
-  // Delete a question
   function handleDeleteQuestion(id) {
-    const updated = questions.filter((q) => q.id !== id);
-    setQuestions(updated);
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
   }
 
-  // Update a question (correctIndex change)
   function handleUpdateQuestion(updatedQ) {
-    const updated = questions.map((q) =>
-      q.id === updatedQ.id ? updatedQ : q
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === updatedQ.id ? updatedQ : q))
     );
-    setQuestions(updated);
   }
 
   return (

@@ -11,9 +11,10 @@ function QuestionForm({ onAddQuestion }) {
   });
 
   const isMounted = useRef(true);
+
   useEffect(() => {
     return () => {
-      isMounted.current = false;
+      isMounted.current = false; // cleanup when form unmounts
     };
   }, []);
 
@@ -44,8 +45,8 @@ function QuestionForm({ onAddQuestion }) {
     })
       .then((r) => r.json())
       .then((savedQ) => {
-        onAddQuestion(savedQ);
         if (isMounted.current) {
+          onAddQuestion(savedQ);
           setFormData({
             prompt: "",
             answer1: "",
@@ -55,7 +56,8 @@ function QuestionForm({ onAddQuestion }) {
             correctIndex: 0,
           });
         }
-      });
+      })
+      .catch((err) => console.error("POST failed:", err));
   }
 
   return (
